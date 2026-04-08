@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:sqf_lite_2/database_helper.dart';
+import 'package:sqf_lite_2/home_page.dart';
 
+// ignore: must_be_immutable
 class BottomSheetView extends StatefulWidget {
 
   final TextEditingController taskcontroller;
-
-  // ignore: prefer_const_constructors_in_immutables
+  DbHelper dbreference;
+  Function getTask;   
   
+  bool isUpdate;
+  int? id;                           // DOUT HERE
+  // ignore: prefer_const_constructors_in_immutables
+
   BottomSheetView({
     super.key,
     required this.taskcontroller,
+    required this.dbreference, 
+    required this.getTask,
+    this.isUpdate = false,
+    this.id
   });
 
   @override
@@ -65,8 +76,32 @@ class _BottomSheetViewState extends State<BottomSheetView> {
               /// ADD BUTTON
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: ()async{
                     // Add your insert logic here
+
+                    var task = widget.taskcontroller.text.trim();
+                    if(task.isNotEmpty){
+
+                      bool check = widget.isUpdate 
+                      ? await widget.dbreference.updateTask(id: 
+                      widget.id!, task: task): await widget.dbreference.addTask(task: task);
+
+                      if(check){
+
+                        widget.getTask();                          // DOUT HERE
+                        widget.taskcontroller.clear();
+                        Navigator.pop(context);
+
+                      }
+                    }else{
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Please enter task"))
+                        );
+                      }
+                      setState(() {
+                        
+                      });
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
@@ -75,7 +110,7 @@ class _BottomSheetViewState extends State<BottomSheetView> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text("Add Task"),
+                  child: Text(widget.isUpdate ? "UPDATE" : "ADD Task"),
                 ),
               ),
 
